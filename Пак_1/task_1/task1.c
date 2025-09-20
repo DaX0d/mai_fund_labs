@@ -24,8 +24,15 @@ US_T* natural_numbers(const ULL_T number) {
     return array;
 }
 
-int is_prime(const ULL_T) {
-    return 0;
+int is_prime(const ULL_T number) {
+    if (number < 2) return 0;
+    if (number == 2) return 1;
+    if (number % 2 == 0) return 0;
+    ULL_T max = (ULL_T)sqrtl((long double)number);
+    for (ULL_T i = 3; i <= max; i += 2) {
+        if (number % i == 0) return 0;
+    }
+    return 1;
 }
 
 char div_hex(const ULL_T) {

@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define ULL_T unsigned long long
 #define US_T unsigned short

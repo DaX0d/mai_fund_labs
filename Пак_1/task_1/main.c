@@ -27,12 +27,12 @@ int main(int argc, char* argv[]) {
     char* flag = argv[2];
     // printf("%s\n", flag);
 
-    if (flag[1] == 'h' || flag[0] == 'T') {
+    if (flag[1] == 'h' || flag[0] == 'H') {
         if (number == 0) {
             printf("Can't divide by zero\n");
             return 0;
         }
-        printf("%llu\n", number);
+        // printf("%llu\n", number);
         US_T* ans = natural_numbers(number);
         if (ans == NULL) {
             return 2;
@@ -47,6 +47,14 @@ int main(int argc, char* argv[]) {
             printf("%hu ", ans[i++]);
         }
         free(ans);
+    } else {
+    if (flag[1] == 'p' || flag[0] == 'P') {
+        if (is_prime(number)) {
+            printf("This is a prime number\n");
+        } else {
+            printf("This is NOT a prime number\n");
+        }
+    }
     }
 
     return 0;
