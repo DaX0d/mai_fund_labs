@@ -54,6 +54,16 @@ int main(int argc, char* argv[]) {
         } else {
             printf("This is NOT a prime number\n");
         }
+    } else {
+    if (flag[1] == 's' || flag[0] == 'S') {
+        char* hex_str = div_hex(number);
+        if (hex_str == NULL) return 2;
+        for (US_T i = 0; hex_str[i] != '\0'; ++i) {
+            printf("%c ", hex_str[i]);
+        }
+        printf("\n");
+        free(hex_str);
+    }
     }
     }
 
