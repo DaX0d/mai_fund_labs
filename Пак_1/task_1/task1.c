@@ -61,8 +61,23 @@ char* div_hex(const ULL_T number) {
     return ans;
 }
 
-int degree_dec(const ULL_T number) {
-    return 0;
+ULL_T** degree_dec(const ULL_T number) {
+    ULL_T** ans = (ULL_T**)calloc(10, sizeof(ULL_T*));
+    if (ans == NULL) {
+        printf("Memory allocation failed\n");
+        return NULL;
+    }
+    for (US_T i = 0; i < 10; ++i) {
+        ans[i] = (ULL_T*)calloc(number, sizeof(ULL_T));
+        if (ans[i] == NULL) {
+            printf("Memory allocation failed\n");
+            return NULL;
+        }
+        for (US_T j = 0; j < number; ++j) {
+            ans[i][j] = (ULL_T)powl(i + 1, j + 1);
+        }
+    }
+    return ans;
 }
 
 ULL_T sum_of_natural(const ULL_T number) {
@@ -71,4 +86,11 @@ ULL_T sum_of_natural(const ULL_T number) {
 
 ULL_T factorial(const ULL_T number) {
     return 0;
+}
+
+void free_matrix(ULL_T** matrix) {
+    for (US_T i = 0; i < 10; ++i) {
+        free(matrix[i]);
+    }
+    free(matrix);
 }

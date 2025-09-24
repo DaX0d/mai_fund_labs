@@ -63,9 +63,22 @@ int main(int argc, char* argv[]) {
         }
         printf("\n");
         free(hex_str);
-    }
-    }
-    }
+    } else {
+    if (flag[1] == 'e' || flag[0] == 'E') {
+        if (number > 10) {
+            printf("Number must not be more then 10\n");
+            return 0;
+        }
+        ULL_T** matrix = degree_dec(number);
+        if (matrix == NULL) return 2;
+        for (US_T i = 0; i < 10; ++i) {
+            for (US_T j = 0; j < number; ++j) {
+                printf("%11llu ", matrix[i][j]);
+            }
+            printf("\n");
+        }
+        free_matrix(matrix);
+    }}}}
 
     return 0;
 }
