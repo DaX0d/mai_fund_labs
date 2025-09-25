@@ -83,14 +83,19 @@ ULL_T** degree_dec(const ULL_T number) {
 ULL_T sum_of_natural(const ULL_T number) {
     ULL_T ans = number;
     for (ULL_T i = number - 1; i > 0; --i) {
+        if (ULLONG_MAX - ans < i) return 0;
         ans += i;
-        if (ans == ULLONG_MAX) return 0;
     }
     return ans;
 }
 
 ULL_T factorial(const ULL_T number) {
-    return 0;
+    ULL_T ans = 1;
+    for (ULL_T i = 2; i <= number; ++i) {
+        if (ans > ULLONG_MAX / i) return 0;
+        ans *= i;
+    }
+    return ans;
 }
 
 void free_matrix(ULL_T** matrix) {

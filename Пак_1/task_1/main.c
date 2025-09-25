@@ -90,7 +90,19 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         printf("%llu\n", ans);
-    }}}}}
+    } else {
+    if (flag[1] == 'f' || flag[0] == 'F') {
+        if (number < 2) {
+            printf("1\n");
+            return 0;
+        }
+        ULL_T ans = factorial(number);
+        if (ans == 0) {
+            printf("Too big number\n");
+            return 1;
+        }
+        printf("%llu\n", ans);
+    }}}}}}
 
     return 0;
 }
