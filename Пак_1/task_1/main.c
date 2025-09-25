@@ -78,7 +78,19 @@ int main(int argc, char* argv[]) {
             printf("\n");
         }
         free_matrix(matrix);
-    }}}}
+    } else {
+    if (flag[1] == 'a' || flag[0] == 'A') {
+        if (number == 0) {
+            printf("Number must not be less then 1\n");
+            return 1;
+        }
+        ULL_T ans = sum_of_natural(number);
+        if (ans == 0) {
+            printf("Too big number\n");
+            return 1;
+        }
+        printf("%llu\n", ans);
+    }}}}}
 
     return 0;
 }

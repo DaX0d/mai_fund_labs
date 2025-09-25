@@ -81,7 +81,12 @@ ULL_T** degree_dec(const ULL_T number) {
 }
 
 ULL_T sum_of_natural(const ULL_T number) {
-    return 0;
+    ULL_T ans = number;
+    for (ULL_T i = number - 1; i > 0; --i) {
+        ans += i;
+        if (ans == ULLONG_MAX) return 0;
+    }
+    return ans;
 }
 
 ULL_T factorial(const ULL_T number) {
