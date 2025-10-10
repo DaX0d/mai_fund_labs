@@ -5,11 +5,11 @@ int q_function(double eps, double a, double b, double c) {
 }
 
 int m_function(long long first, long long second) {
-    if (second == 0) {
-        printf("Error: division by zero\n");
-        return -1;
+    if (first % second == 0) {
+        printf("Число %lld кратно числу %lld\n", first, second);
+    } else {
+        printf("Число %lld не кратно числу %lld\n", first, second);
     }
-
     return 0;
 }
 

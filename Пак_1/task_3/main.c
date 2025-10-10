@@ -7,7 +7,7 @@ int main(int argc, char* argv[]) {
     }
 
     char* flag = argv[1];
-    if (flag[0] != '-' || flag[0] != '/') {
+    if (flag[0] != '-' && flag[0] != '/') {
         printf("Usage: %s -<flag>(/<flag>) <parameters>\n", argv[0]);
         return 1;
     }
@@ -29,6 +29,10 @@ int main(int argc, char* argv[]) {
                 char* endptr;
                 long long first = strtoll(argv[2], &endptr, 10);
                 long long second = strtoll(argv[3], &endptr, 10);
+                if (first == 0 || second == 0) {
+                    printf("Error: parameter can't be equal to zero\n");
+                    return -1;
+                }
                 return m_function(first, second);
             }
         break;
@@ -37,6 +41,7 @@ int main(int argc, char* argv[]) {
                 printf("Usage: %s -q <eps> <float> <float> <float>\n");
                 return 1;
             }
+            // t_function();
         break;
     }
     return 0;
