@@ -5,4 +5,4 @@ project(task_3)
 add_library(task3_lib task_3.c)
 add_executable(task3 main.c)
 
-target_link_libraries(task3 PRIVATE task3_lib)
+target_link_libraries(task3 PRIVATE task3_lib m)
