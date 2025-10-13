@@ -87,5 +87,21 @@ int t_tunction(
     const double b,
     const double c)
 {
+    if (equal(eps, a, 0) || equal(eps, b, 0) || equal(eps, c, 0)
+        || a < 0 || b < 0 || c < 0) {
+        printf("Длина стороны не может быть меньше или равна нулю\n");
+        return 1;
+    }
+
+    double arr[] = {a, b, c};
+    for (unsigned short i = 0; i < 3; ++i) {
+        if (equal(eps, pow(arr[i], 2), pow(arr[(i + 1) % 3], 2) + pow(arr[(i + 2) % 3], 2))) {
+            printf("Числа могут являться длинами сторон прямоугоького треугоьлника\n");
+            return 0;
+        }
+    }
+
+    printf("Числа не могут являться длинами сторон прямоугоького треугоьлника\n");
+
     return 0;
 }

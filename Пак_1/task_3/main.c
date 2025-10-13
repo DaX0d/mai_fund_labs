@@ -76,7 +76,32 @@ int main(int argc, char* argv[]) {
                 printf("Usage: %s -q <eps> <float> <float> <float>\n", argv[0]);
                 return 1;
             }
-            // t_function();
+            char* endptr;
+                double eps = strtod(argv[2], &endptr);
+                if (*endptr != 0) {
+                    printf("Error: invalid parameter %s Must be <eps>\n", argv[2]);
+                    return 1;
+                }
+                if (eps <= 0) {
+                    printf("Error: eps must be more then zero\n");
+                    return 1;
+                }
+                double a = strtod(argv[3], &endptr);
+                if (*endptr != 0) {
+                    printf("Error: invalid parameter %s Must be <float>\n", argv[3]);
+                    return 1;
+                }
+                double b = strtod(argv[4], &endptr);
+                if (*endptr != 0) {
+                    printf("Error: invalid parameter %s Must be <float>\n", argv[4]);
+                    return 1;
+                }
+                double c = strtod(argv[5], &endptr);
+                if (*endptr != 0) {
+                    printf("Error: invalid parameter %s Must be <float>\n", argv[5]);
+                    return 1;
+                }
+                t_tunction(eps, a, b, c);
         break;
     }
     
