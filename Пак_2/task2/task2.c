@@ -142,7 +142,7 @@ char* strrchr(const char* str, int c) {
     }
 
     if (ch == '\0')
-        return (char*)str;  // указывает на терминатор строки
+        return (char*)str;
 
     return (char*)last;
 }
