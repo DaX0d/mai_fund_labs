@@ -199,6 +199,8 @@ int oversscanf(const char* str, const char* format, ...){
     va_start(args, format);
     int pos = 0, count = 0;
     size_t flen = strlen(format);
+    char* dynamic_str = NULL;
+    int dynamic_pos = 0;
     
     for (size_t i = 0; i < flen; i++) {
         if (format[i] != '%'){
@@ -319,96 +321,64 @@ int oversscanf(const char* str, const char* format, ...){
                 continue;
             }
             
-            switch (format[i + 1]) {
-                case 'd': case 'i': {
-                    int* result = va_arg(args, int*);
-                    int chars_read;
-                    if (sscanf(&str[pos], "%d%n", result, &chars_read) == 1) {
-                        pos += chars_read;
-                        i++;
-                        count++;
-                    }
-                } break;
-                case 'u': {
-                    unsigned int* result = va_arg(args, unsigned int*);
-                    int chars_read;
-                    if (sscanf(&str[pos], "%u%n", result, &chars_read) == 1) {
-                        pos += chars_read;
-                        i++;
-                        count++;
-                    }
-                } break;
-                case 'f': case 'e': case 'g': {
-                    double* result = va_arg(args, double*);
-                    int chars_read;
-                    if (sscanf(&str[pos], "%lf%n", result, &chars_read) == 1) {
-                        pos += chars_read;
-                        i++;
-                        count++;
-                    }
-                } break;
-                case 'x': {
-                    int* result = va_arg(args, int*);
-                    int chars_read;
-                    if (sscanf(&str[pos], "%x%n", result, &chars_read) == 1) {
-                        pos += chars_read;
-                        i++;
-                        count++;
-                    }
-                } break;
-                case 'X': {
-                    int* result = va_arg(args, int*);
-                    int chars_read;
-                    if (sscanf(&str[pos], "%X%n", result, &chars_read) == 1) {
-                        pos += chars_read;
-                        i++;
-                        count++;
-                    }
-                } break;
-                case 'o': {
-                    int* result = va_arg(args, int*);
-                    int chars_read;
-                    if (sscanf(&str[pos], "%o%n", result, &chars_read) == 1) {
-                        pos += chars_read;
-                        i++;
-                        count++;
-                    }
-                } break;
-                case 's': {
-                    char *result = va_arg(args, char*);
-                    int chars_read;
-                    if (sscanf(&str[pos], "%s%n", result, &chars_read) == 1) {
-                        pos += chars_read;
-                        i++;
-                        count++;
-                    }
-                } break;
-                case 'c': {
-                    char* result = va_arg(args, char*);
-                    int chars_read;
-                    if (sscanf(&str[pos], "%c%n", result, &chars_read) == 1) {
-                        pos += chars_read;
-                        i++;                   
-                        count++;
-                    }
-                } break;
-                case 'p': {
-                    void** result = va_arg(args, void**);
-                    int chars_read;
-                    if (sscanf(&str[pos], "%p%n", result, &chars_read) == 1) {
-                        pos += chars_read;
-                        i++;                    
-                        count++;
-                    }
-                } break;
-                case 'n': {
-                    int* result = va_arg(args, int*);
-                    *result = pos;
-                    i++;
-                } break;
-                default:
-                    i++;
+            char fmt[16] = {0};
+            int fmt_len = 0;
+            
+            // Копируем спецификатор (например, "%d")
+            fmt[fmt_len++] = '%';
+            
+            // Пропускаем возможные модификаторы (h, l, L и т.д.)
+            i++;
+            while (format[i] && !strchr("diuoxXfFeEgGaAscpn%", format[i])) {
+                if (fmt_len < 14) fmt[fmt_len++] = format[i];
+                i++;
             }
+            
+            // Добавляем тип спецификатора
+            if (format[i]) {
+                fmt[fmt_len++] = format[i];
+                fmt[fmt_len] = '\0';
+            } else {
+                va_end(args);
+                return count;
+            }
+            
+            // Используем vsscanf для стандартных спецификаторов
+            int chars_read = 0;
+            va_list args_copy;
+            va_copy(args_copy, args);
+            
+            if (strchr("diuoxXfFeEgGaAscp", format[i])) {
+                // Для обычных спецификаторов
+                int result = vsscanf(&str[pos], fmt, args_copy);
+                if (result == 1) {
+                    count++;
+                    // Определяем сколько символов было прочитано
+                    int temp_pos = pos;
+                    while (str[temp_pos] && !isspace(str[temp_pos])) temp_pos++;
+                    pos = temp_pos;
+                    
+                    // Пропускаем соответствующий аргумент
+                    switch (format[i]) {
+                        case 'd': case 'i': case 'o': case 'x': case 'X':
+                        case 'u': va_arg(args, int*); break;
+                        case 'f': case 'e': case 'g': case 'F': case 'E': case 'G': case 'a': case 'A':
+                            va_arg(args, double*); break;
+                        case 's': case 'c':
+                            va_arg(args, char*); break;
+                        case 'p':
+                            va_arg(args, void**); break;
+                    }
+                }
+            } else if (format[i] == 'n') {
+                // Для %n
+                int* n_ptr = va_arg(args, int*);
+                *n_ptr = pos;
+                // Не увеличиваем count, так как %n не считается за успешное преобразование
+            }
+            
+            va_end(args_copy);
+        
         }
     }
     va_end(args);
@@ -525,118 +495,81 @@ int overfscanf(FILE* stream, const char* format, ...){
                 i += 2;
                 continue;
             }
+            
+            long pos_before = ftell(stream);
+            int items_read = 0;
+            
+            // Используем switch только для определения формата
+            char fmt[4] = {0};
             switch (format[i + 1]) {
-                case 'd': case 'i': {
-                    int* result = va_arg(args, int*);
-                    long pos_before = ftell(stream);
-                    if (fscanf(stream, "%d", result) == 1) {
-                        long pos_after = ftell(stream);
-                        if (pos_before != -1L && pos_after != -1L) {
-                            total_read += (int)(pos_after - pos_before);
-                        }
-                        i++;
-                        count++;
-                    }
-                } break;
-                case 'u': {
-                    unsigned int* result = va_arg(args, unsigned int*);
-                    long pos_before = ftell(stream);
-                    if (fscanf(stream, "%u", result) == 1) {
-                        long pos_after = ftell(stream);
-                        if (pos_before != -1L && pos_after != -1L) {
-                            total_read += (int)(pos_after - pos_before);
-                        }
-                        i++;
-                        count++;
-                    }
-                } break;
-                case 'f': case 'e': case 'g': {
-                    double* result = va_arg(args, double*);
-                    long pos_before = ftell(stream);
-                    if (fscanf(stream, "%lf", result) == 1) {
-                        long pos_after = ftell(stream);
-                        if (pos_before != -1L && pos_after != -1L) {
-                            total_read += (int)(pos_after - pos_before);
-                        }
-                        i++;
-                        count++;
-                    }
-                } break;
-                case 'x':{
-                    int* result = va_arg(args, int*);
-                    long pos_before = ftell(stream);
-                    if (fscanf(stream, "%x", result) == 1) {
-                        long pos_after = ftell(stream);
-                        if (pos_before != -1L && pos_after != -1L) {
-                            total_read += (int)(pos_after - pos_before);
-                        }
-                        i++;
-                        count++;
-                    }
-                } break;
-                case 'X': {
-                    int* result = va_arg(args, int*);
-                    long pos_before = ftell(stream);
-                    if (fscanf(stream, "%X", result) == 1) {
-                        long pos_after = ftell(stream);
-                        if (pos_before != -1L && pos_after != -1L) {
-                            total_read += (int)(pos_after - pos_before);
-                        }
-                        i++;
-                        count++;
-                    }
-                } break;
-                case 'o': {
-                    int* result = va_arg(args, int*);
-                    long pos_before = ftell(stream);
-                    if (fscanf(stream, "%o", result) == 1){
-                        long pos_after = ftell(stream);
-                        if (pos_before != -1L && pos_after != -1L) {
-                            total_read += (int)(pos_after - pos_before);
-                        }
-                        i++;
-                        count++;
-                    }
-                } break;
-                case 's': {
-                    char* result = va_arg(args, char*);
-                    long pos_before = ftell(stream);
-                    if (fscanf(stream, "%s", result) == 1) {
-                        long pos_after = ftell(stream);
-                        if (pos_before != -1L && pos_after != -1L) {
-                            total_read += (int)(pos_after - pos_before);
-                        }
-                        i++;
-                        count++;
-                    }
-                } break;
-                case 'c': {
-                    char* result = va_arg(args, char*);
-                    if (fscanf(stream, "%c", result) == 1) {
-                        total_read++;
-                        i++;                   
-                        count++;
-                    }
-                } break;
+                case 'd': case 'i': case 'u': case 'x': case 'X': case 'o':
+                case 'f': case 'e': case 'g':
+                case 's':
+                case 'c':
                 case 'p': {
-                    void** result = va_arg(args, void**);
-                    long pos_before = ftell(stream);
-                    if (fscanf(stream, "%p", result) == 1) {
-                        long pos_after = ftell(stream);
-                        if (pos_before != -1L && pos_after != -1L) {
-                            total_read += (int)(pos_after - pos_before);
-                        }
-                        i++;                    
-                        count++;
+                    snprintf(fmt, sizeof(fmt), "%%%c", format[i + 1]);
+                    if (format[i + 1] == 'f' || format[i + 1] == 'e' || format[i + 1] == 'g') {
+                        items_read = vfscanf(stream, "%lf", args);
+                    } else {
+                        items_read = vfscanf(stream, fmt, args);
                     }
-                } break;
+                    break;
+                }
                 case 'n': {
-                    int* result = va_arg(args, int*);
-                    *result = total_read;
-                    i++;
-                } break;
+                    // Обработка %n
+                    int* arg = va_arg(args, int*);
+                    *arg = total_read;
+                    items_read = 1; // Успешно обработано
+                    break;
+                }
                 default:
-                    i++;
+                    i++; // Пропускаем неизвестный спецификатор
+                    continue;
+            }
+            
+            if (items_read == 1) {
+                long pos_after = ftell(stream);
+                if (pos_before != -1L && pos_after != -1L) {
+                    total_read += (int)(pos_after - pos_before);
+                }
+                
+                // Продвигаем args на один аргумент (кроме %n)
+                if (format[i + 1] != 'n') {
+                    switch (format[i + 1]) {
+                        case 'd': case 'i': case 'u': case 'x': case 'X': case 'o': {
+                            int* arg = va_arg(args, int*);
+                            (void)arg;
+                            break;
+                        }
+                        case 'f': case 'e': case 'g': {
+                            double* arg = va_arg(args, double*);
+                            (void)arg;
+                            break;
+                        }
+                        case 's': {
+                            char* arg = va_arg(args, char*);
+                            (void)arg;
+                            break;
+                        }
+                        case 'c': {
+                            char* arg = va_arg(args, char*);
+                            (void)arg;
+                            break;
+                        }
+                        case 'p': {
+                            void** arg = va_arg(args, void**);
+                            (void)arg;
+                            break;
+                        }
+                    }
+                }
+                
+                count++;
+                i++; // Пропускаем спецификатор формата
+            } else {
+                // Не удалось прочитать
+                va_end(args);
+                return count;
             }
         }
     }
