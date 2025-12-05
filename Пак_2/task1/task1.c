@@ -46,4 +46,5 @@ void check_fractions(const int base, const double eps, const int count, ...) {
             printf("  %.10f не имеет конечного представления\n", num);
         }
     }
+    va_end(args);
 }

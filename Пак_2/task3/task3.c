@@ -382,59 +382,61 @@ int oversprintf(char* str, const char* format, ...) {
                 i += 2;
                 continue;
             }
-            switch(format[i + 1]) {
-                case 'd': case 'i': {
-                    int result = va_arg(args, int);
-                    pos += snprintf(buf + pos, buf_size - pos, "%d", result);
-                    i++;
-                } break;
-                case 'u': {
-                    unsigned int result = va_arg(args, unsigned int);
-                    pos += snprintf(buf + pos, buf_size - pos, "%u", result);
-                    i++;
-                } break;
-                case 'f': {
-                    double result = va_arg(args, double);
-                    pos += snprintf(buf + pos, buf_size - pos, "%f", result);
-                    i++;
-                } break;
-                case 'x': case 'X': {
-                    int result = va_arg(args, int);
-                    pos += snprintf(buf + pos, buf_size - pos, (format[i+1] == 'x' ? "%x" : "%X"), result);
-                    i++;
-                } break;
-                case 'o': {
-                    int result = va_arg(args, int);
-                    pos += snprintf(buf + pos, buf_size - pos, "%o", result);
-                    i++;
-                } break;
-                case 's': {
-                    const char* result = va_arg(args, const char*);
-                    pos += snprintf(buf + pos, buf_size - pos, "%s", result);
-                    i++;
-                } break;
-                case 'c': {
-                    int result = va_arg(args, int);
-                    pos += snprintf(buf + pos, buf_size - pos, "%c", result);
-                    i++;
-                } break;
-                case 'p': {
-                    void* result = va_arg(args, void*);
-                    pos += snprintf(buf + pos, buf_size - pos, "%p", result);
-                    i++;
-                } break;
-                case 'n': {
-                    int* result = va_arg(args, int*);
-                    *result = pos;
-                    i++;
-                } break;
-                case '%': {
-                    buf[pos++] = '%';
-                    i++;
-                } break;
-                default:
-                    buf[pos++] = '%';
+
+            char fmt_buf[64];
+            int fmt_len = 0;
+            fmt_buf[fmt_len++] = '%';
+            
+            for (size_t j = i + 1; j <= flen; j++) {
+                char c = format[j];
+                if (c == '\0' || strchr("diuoxXfFeEgGaAcspn%", c) != NULL) {
+                    if (c != '\0') {
+                        fmt_buf[fmt_len++] = c;
+                    }
+                    fmt_buf[fmt_len] = '\0';
+                    
+                    // Обрабатываем с помощью vsnprintf
+                    va_list args_copy;
+                    va_copy(args_copy, args);
+                    char temp[512];
+                    int temp_len = vsnprintf(temp, sizeof(temp), fmt_buf, args_copy);
+                    va_end(args_copy);
+                    
+                    if (temp_len > 0) {
+                        if (pos + temp_len >= buf_size - 1) {
+                            buf_size = pos + temp_len + 1;
+                            char* new_buf = realloc(buf, buf_size);
+                            if (!new_buf) {
+                                free(buf);
+                                va_end(args);
+                                return -1;
+                            }
+                            buf = new_buf;
+                        }
+                        strcpy(buf + pos, temp);
+                        pos += temp_len;
+                        
+                        // Пропускаем аргументы
+                        if (strchr("diuoxXp", c)) {
+                            va_arg(args, int);
+                        } else if (strchr("fFeEgGaA", c)) {
+                            va_arg(args, double);
+                        } else if (c == 's') {
+                            va_arg(args, char*);
+                        } else if (c == 'c') {
+                            va_arg(args, int);
+                        } else if (c == 'n') {
+                            va_arg(args, int*);
+                        }
+                        // % не требует аргумента
+                    }
+                    
+                    i = j;
+                    break;
+                }
+                fmt_buf[fmt_len++] = c;
             }
+
         } else {
             buf[pos++] = format[i];
         }
@@ -567,58 +569,58 @@ int overfprintf(FILE* stream, const char* format, ...) {
                 i += 2;
                 continue;
             }
-            switch(format[i + 1]) {
-                case 'd': case 'i': {
-                    int result = va_arg(args, int);
-                    pos += snprintf(buf + pos, buf_size - pos, "%d", result);
-                    i++;
-                } break;
-                case 'u': {
-                    unsigned int result = va_arg(args, unsigned int);
-                    pos += snprintf(buf + pos, buf_size - pos, "%u", result);
-                    i++;
-                } break;
-                case 'f': {
-                    double result = va_arg(args, double);
-                    pos += snprintf(buf + pos, buf_size - pos, "%f", result);
-                    i++;
-                } break;
-                case 'x': case 'X': {
-                    int result = va_arg(args, int);
-                    pos += snprintf(buf + pos, buf_size - pos, (format[i+1] == 'x' ? "%x" : "%X"), result);
-                    i++;
-                } break;
-                case 'o': {
-                    int result = va_arg(args, int);
-                    pos += snprintf(buf + pos, buf_size - pos, "%o", result);
-                    i++;
-                } break;
-                case 's': {
-                    const char *result = va_arg(args, const char*);
-                    pos += snprintf(buf + pos, buf_size - pos, "%s", result);
-                    i++;
-                } break;
-                case 'c': {
-                    int result = va_arg(args, int);
-                    pos += snprintf(buf + pos, buf_size - pos, "%c", result);
-                    i++;
-                } break;
-                case 'p': {
-                    void *result = va_arg(args, void*);
-                    pos += snprintf(buf + pos, buf_size - pos, "%p", result);
-                    i++;
-                } break;
-                case 'n': {
-                    int* result = va_arg(args, int*);
-                    *result = pos;
-                    i++;
-                } break;
-                case '%': {
-                    buf[pos++] = '%';
-                    i++;
-                } break;
-                default:
-                    buf[pos++] = '%';
+            char fmt_buf[64];
+            int fmt_len = 0;
+            fmt_buf[fmt_len++] = '%';
+            
+            for (size_t j = i + 1; j <= flen; j++) {
+                char c = format[j];
+                if (c == '\0' || strchr("diuoxXfFeEgGaAcspn%", c) != NULL) {
+                    if (c != '\0') {
+                        fmt_buf[fmt_len++] = c;
+                    }
+                    fmt_buf[fmt_len] = '\0';
+                    
+                    // Обрабатываем с помощью vsnprintf
+                    va_list args_copy;
+                    va_copy(args_copy, args);
+                    char temp[512];
+                    int temp_len = vsnprintf(temp, sizeof(temp), fmt_buf, args_copy);
+                    va_end(args_copy);
+                    
+                    if (temp_len > 0) {
+                        if (pos + temp_len >= buf_size - 1) {
+                            buf_size = pos + temp_len + 1;
+                            char* new_buf = realloc(buf, buf_size);
+                            if (!new_buf) {
+                                free(buf);
+                                va_end(args);
+                                return -1;
+                            }
+                            buf = new_buf;
+                        }
+                        strcpy(buf + pos, temp);
+                        pos += temp_len;
+                        
+                        // Пропускаем аргументы
+                        if (strchr("diuoxXp", c)) {
+                            va_arg(args, int);
+                        } else if (strchr("fFeEgGaA", c)) {
+                            va_arg(args, double);
+                        } else if (c == 's') {
+                            va_arg(args, char*);
+                        } else if (c == 'c') {
+                            va_arg(args, int);
+                        } else if (c == 'n') {
+                            va_arg(args, int*);
+                        }
+                        // % не требует аргумента
+                    }
+                    
+                    i = j;
+                    break;
+                }
+                fmt_buf[fmt_len++] = c;
             }
         } else {
             buf[pos++] = format[i];
