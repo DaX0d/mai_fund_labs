@@ -395,7 +395,6 @@ int oversprintf(char* str, const char* format, ...) {
                     }
                     fmt_buf[fmt_len] = '\0';
                     
-                    // Обрабатываем с помощью vsnprintf
                     va_list args_copy;
                     va_copy(args_copy, args);
                     char temp[512];
@@ -416,7 +415,6 @@ int oversprintf(char* str, const char* format, ...) {
                         strcpy(buf + pos, temp);
                         pos += temp_len;
                         
-                        // Пропускаем аргументы
                         if (strchr("diuoxXp", c)) {
                             va_arg(args, int);
                         } else if (strchr("fFeEgGaA", c)) {
@@ -428,7 +426,6 @@ int oversprintf(char* str, const char* format, ...) {
                         } else if (c == 'n') {
                             va_arg(args, int*);
                         }
-                        // % не требует аргумента
                     }
                     
                     i = j;
@@ -581,7 +578,6 @@ int overfprintf(FILE* stream, const char* format, ...) {
                     }
                     fmt_buf[fmt_len] = '\0';
                     
-                    // Обрабатываем с помощью vsnprintf
                     va_list args_copy;
                     va_copy(args_copy, args);
                     char temp[512];
@@ -602,7 +598,6 @@ int overfprintf(FILE* stream, const char* format, ...) {
                         strcpy(buf + pos, temp);
                         pos += temp_len;
                         
-                        // Пропускаем аргументы
                         if (strchr("diuoxXp", c)) {
                             va_arg(args, int);
                         } else if (strchr("fFeEgGaA", c)) {
@@ -614,7 +609,6 @@ int overfprintf(FILE* stream, const char* format, ...) {
                         } else if (c == 'n') {
                             va_arg(args, int*);
                         }
-                        // % не требует аргумента
                     }
                     
                     i = j;
